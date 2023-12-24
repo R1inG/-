@@ -1,1 +1,237 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<time.h>
+#include <sys/time.h>
 
+void swap(int *a,int *b)
+{
+	int t= *a;
+	*a=*b;
+	*b=t;
+}
+//快速排序 
+void quick_sort_recursive(int arr[], int start, int end)
+{
+	if(start>=end)
+		return ;
+	int mid=arr[end];
+	int left=start,right=end-1;
+	
+	while(left<right)
+	{
+		while(arr[left]<mid&&left<right)
+		{
+			left++;
+		}
+		while(arr[right]>=mid&&left<right)
+		{
+			right--;
+		}
+		swap(&arr[left],&arr[right]);
+	}
+	if(arr[left]>=arr[end])
+		swap(&arr[left],&arr[end]);
+	else
+		left++;
+	if(left)
+		quick_sort_recursive(arr,start,left-1);
+	quick_sort_recursive(arr,left+1,end);
+}
+void quick_sort(int arr[],int len)
+{
+	quick_sort_recursive(arr,0,len-1);
+}
+//希尔排序
+void shell_sort(int arr[],int len)
+{
+	int gap,i,j;
+	int temp;
+	for(gap=len/2;gap>0;gap/=2)//选择2^k的递增序列 
+	{
+		for(i=gap;i<len;i++)
+		{
+			temp=arr[i];
+			for(j=i;j>=gap&&arr[j-gap]>temp;j-=gap)
+				arr[j]=arr[j-gap];
+			arr[j]=temp;
+		}
+	}
+}
+//堆排序
+void heapify(int arr[],int n,int i)
+{
+	int largest=i;
+	int left = 2*i+1;
+	int right=2*i+2;
+	if(left<n&&arr[left]>arr[largest])
+		largest=left;
+	if(right<n&&arr[right]>arr[largest])
+		largest=right;
+	if(largest!=i)
+	{
+		swap(&arr[i],&arr[largest]);
+		heapify(arr,n,largest);
+	}
+}
+void heap_sort(int arr[],int n)
+{
+	for(int i=n/2-1;i>=0;i--)
+		heapify(arr,n,i);
+	for(int i=n-1;i>0;i--)
+	{
+		swap(&arr[0],&arr[i]);
+		heapify(arr,i,0);
+	}
+}
+//归并排序
+void merge(int arr[],int left,int mid,int right)
+{
+	int i,j,k;
+	int n1=mid-left+1;
+	int n2=right-mid;
+	int l[n1],r[n2];
+	for(i=0;i<n1;i++)
+		l[i]=arr[left+i];
+	for(i=0;i<n2;i++)
+		r[i]=arr[mid+i+1];
+	i=0,j=0;
+	k=left;
+	while(i<n1&&j<n2)
+	{
+		if(l[i]<=r[j])
+		{
+			arr[k]=l[i];
+			i++;
+		}
+		else
+		{
+			arr[k]=r[j];
+			j++;
+		}
+		k++;
+	}
+	while (i < n1) {
+        arr[k] = l[i];
+        i++;
+        k++;
+    }
+    while (j < n2) {
+        arr[k] = r[j];
+        j++;
+        k++;
+    }
+}
+void merge_sort(int arr[],int left,int right)
+{
+	if(left<right)
+	{
+		int mid = (left+right)/2;
+		merge_sort(arr,left,mid);
+		merge_sort(arr,mid+1,right);
+		merge(arr,left,mid,right);
+	}
+}
+//计数排序
+void counting_sort(int arr[],int n)
+{
+	int max=arr[0];
+	int i;
+	for(i=1;i<n;i++)
+	{
+		if(arr[i]>max)
+			max=arr[i];
+	}
+	int *count=(int *)calloc(max+1,sizeof(int));
+	for(i=0;i<n;i++)
+	{
+		count[arr[i]]++;
+	}
+	i=0;
+	int j=0;
+	for(j=0;j<=max;j++)
+	{
+		while(count[j]>0)
+		{
+			arr[i]=j;
+			i++;
+			count[j]--;
+		}
+	}
+	free(count);
+} 
+void print(int arr[],int n)
+{
+	for(int i=0;i<n;i++)
+	{
+		printf("%d ",arr[i]);
+	}
+	printf("\n");
+}
+void get_time(double *time)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    *time = (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
+}
+int main(void)
+{
+	int arr[100] = {6, 12, 458, 5, 4, 28, 19, 1230, 9, 47};
+    int len = 10;
+
+    // 测试希尔排序
+    double start_shell, end_shell;
+    get_time(&start_shell);
+    shell_sort(arr, len);
+    get_time(&end_shell);
+    printf("希尔排序结果：");
+    print(arr, len);
+    double time_shell = end_shell - start_shell;
+    //printf("希尔排序花费时间：%f秒\n\n", time_shell);
+
+    int arr1[100] = {6, 12, 458, 5, 4, 28, 19, 1230, 9, 47};
+    // 测试快速排序
+    double start_quick, end_quick;
+    get_time(&start_quick);
+    quick_sort(arr1, len);
+    get_time(&end_quick);
+    printf("快速排序结果：");
+    print(arr1, len);
+    double time_quick = end_quick - start_quick;
+    //printf("快速排序花费时间：%f秒\n\n", time_quick);
+
+    int arr2[100] = {6, 12, 458, 5, 4, 28, 19, 1230, 9, 47};
+    // 测试堆排序
+    double start_heap, end_heap;
+    get_time(&start_heap);
+    heap_sort(arr2, len);
+    get_time(&end_heap);
+    printf("堆排序结果：");
+    print(arr2, len);
+    double time_heap = end_heap - start_heap;
+    //printf("堆排序花费时间：%f秒\n\n", time_heap);
+
+    int arr3[100] = {6, 12, 458, 5, 4, 28, 19, 1230, 9, 47};
+    // 测试归并排序
+    double start_merge, end_merge;
+    get_time(&start_merge);
+    merge_sort(arr3, 0, len - 1);
+    get_time(&end_merge);
+    printf("归并排序结果：");
+    print(arr3, len);
+    double time_merge = end_merge - start_merge;
+    //printf("归并排序花费时间：%f秒\n\n", time_merge);
+
+    int arr4[100] = {6, 12, 458, 5, 4, 28, 19, 1230, 9, 47};
+    // 测试计数排序
+    double start_counting, end_counting;
+    get_time(&start_counting);
+    counting_sort(arr4, len);
+    get_time(&end_counting);
+    printf("计数排序结果：");
+    print(arr4, len);
+    double time_counting = end_counting - start_counting;
+    //printf("计数排序花费时间：%f秒\n\n", time_counting);
+
+    return 0;
+}
