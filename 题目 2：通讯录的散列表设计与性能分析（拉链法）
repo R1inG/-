@@ -1,0 +1,132 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+typedef struct {
+    char number[15];
+    char name[20];
+} User;
+
+typedef struct Node {
+    char key[15];
+    char key_name[20];
+    struct Node* next;
+} Node;
+
+typedef struct {
+    Node* head;
+} HashTable;
+
+// 哈希函数 1(手机号码中的数字字符相加，并对哈希表的大小取模）
+unsigned int hash_sum1(const char number[], int size) {
+    unsigned int sum = 0;
+    int len = strlen(number);
+    for (int i = 0; i < len; i++) {
+        sum += number[i] - '0';
+    }
+    return sum % size;
+}
+//哈希函数2（ 每个字符，将当前 sum 乘以 31，然后加上该字符的数字值（通过减去字符 '0' 得到）。并对哈希表的大小取模） 
+unsigned int hash_sum2(const char number[], int size)
+{
+    unsigned int sum = 0;
+    int len = strlen(number);
+
+    for (int i = 0; i < len; i++) {
+        sum = sum * 31 + (number[i] - '0');
+    }
+    return sum % size;
+}
+
+// 初始化哈希表
+void iniHT(HashTable ha[], int size) {
+    for (int i = 0; i < size; i++) {
+        ha[i].head = NULL;
+    }
+}
+
+// 数据插入哈希表 （哈希函数1）
+void insertData(User user[], HashTable ht[], int size) {
+    int adr,totalconflict=0, totalASL=0;
+    for (int i = 0; i < size; i++) {
+        if (i > 100)
+            break;
+        adr = hash_sum1(user[i].number, size);
+
+        Node* q = (Node*)malloc(sizeof(Node));
+        strcpy(q->key, user[i].number);
+        strcpy(q->key_name, user[i].name);
+        q->next = NULL;
+
+        if (ht[adr].head == NULL) {
+            ht[adr].head = q;
+            totalASL++;
+        }
+        else {
+            totalASL++;
+            totalconflict++;
+            q->next = ht[adr].head;
+            ht[adr].head = q;
+        }
+    }
+    printf("(拉链法） 哈希函数1的冲突率: %.2f%%\n", (float)totalconflict / size);
+    printf("(拉链法） 哈希函数1平均搜索长度%.2f\n\n", (float)totalASL / 100);
+
+}
+
+void insertData2(User user[], HashTable ht[], int size) {
+    int adr, totalconflict = 0, totalASL = 0;
+    for (int i = 0; i < size; i++) {
+        if (i > 100)
+            break;
+        adr = hash_sum2(user[i].number, size);
+
+        Node* q = (Node*)malloc(sizeof(Node));
+        strcpy(q->key, user[i].number);
+        strcpy(q->key_name, user[i].name);
+        q->next = NULL;
+
+        if (ht[adr].head == NULL) {
+            ht[adr].head = q;
+            totalASL++;
+        }
+        else {
+            totalASL++;
+            totalconflict++;
+            q->next = ht[adr].head;
+            ht[adr].head = q;
+        }
+    }
+    printf("(拉链法） 哈希函数2的冲突率: %.2f%%\n", (float)totalconflict / size);
+    printf("(拉链法） 哈希函数2平均搜索长度%.2f\n\n", (float)totalASL / 100);
+
+}
+
+int main() {
+
+    User user[100];
+
+    FILE* fp;
+    fp = fopen("测试数据.txt", "rb");
+    if (fp == NULL) {
+        printf("无法打开文件");
+        return 1;
+    }
+
+    for (int i = 0; i < 100; i++) {
+        fscanf(fp, "%s %s", user[i].number, user[i].name);
+    }
+
+    fclose(fp);
+
+    HashTable ht1[151];
+    HashTable ht2[151];
+
+    iniHT(ht1, 151);
+    iniHT(ht2, 151);
+    insertData(user, ht1, 151);
+    insertData2(user, ht2, 151);
+
+
+    return 0;
+}
