@@ -1,1 +1,222 @@
+#include <stdio.h>
+#include <string.h>
+#include<math.h> 
 
+typedef struct {
+    char number[15];
+    char name[20];
+} User;
+
+typedef struct {
+    char key[15];
+    char key_name[20];
+    int count;
+} HashTable;
+//输出哈希表 
+void printHashTable(HashTable ht[], int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%s %s %d\n", ht[i].key, ht[i].key_name, ht[i].count);
+    }
+}
+//哈希函数 1(手机号码中的数字字符相加，并对哈希表的大小取模） 
+unsigned int hash_sum1(const char number[], int size) {
+    unsigned int sum = 0;
+    int len = strlen(number);
+    for (int i = 0; i < len; i++) {
+        sum += number[i] - '0';
+    }
+    return sum % size;
+}
+//哈希函数2（ 每个字符，将当前 sum 乘以 31，然后加上该字符的数字值（通过减去字符 '0' 得到）。并对哈希表的大小取模） 
+unsigned int hash_sum2(const char number[], int size)
+{
+    unsigned int sum = 0;
+    int len = strlen(number);
+
+    for (int i = 0; i < len; i++) {
+        sum = sum * 31 + (number[i] - '0');
+    }
+    return sum % size;
+}
+//初始化哈希表 
+void iniHashTable(HashTable ht[], int size) {
+    for (int i = 0; i < size; i++) {
+        ht[i].count = 0;
+        strcpy(ht[i].key," ");
+        strcpy(ht[i].key_name," ");
+    }
+}
+//数据插入哈希表 （哈希函数1） (线性探测法） 
+void insertData1(User user[], HashTable ht[], int size, int totalInsertions, int totalCollisions) {
+    int adr, cnt,succ=0,j;
+    for (int i = 0; i < size; i++) {
+    	if(i>100)
+        	break;
+        totalInsertions++;
+        adr = hash_sum1(user[i].number, size);
+        if (ht[adr].count == 0) {
+            strcpy(ht[adr].key, user[i].number);
+            strcpy(ht[adr].key_name, user[i].name);
+            ht[adr].count = 1;
+        } else {
+            cnt = 1;
+            do {
+                adr = (adr + 1) % size;
+                cnt++;
+                totalCollisions++;
+            } while (ht[adr].count != 0);
+            strcpy(ht[adr].key, user[i].number);
+            strcpy(ht[adr].key_name, user[i].name);
+            ht[adr].count = cnt;
+        }
+    }
+    for(j=0;j<size;j++)
+    {
+    	succ+=ht[j].count;
+	}
+    //printHashTable(ht, 100);
+    printf("(线性探测法）哈希函数1的冲突率: %.2f%%\n", (float)totalCollisions / totalInsertions);
+    printf("(线性探测法）哈希函数1平均搜索长度%.2f\n\n", (float)succ / size);
+}
+
+//数据插入哈希表 （哈希函数1） (平方探测法） 
+void insertData3(User user[], HashTable ht[], int size, int totalInsertions, int totalCollisions) {
+    int adr, cnt,flag=1,succ=0,j;
+    for (int i = 0; i < size; i++) {
+    	if(i>100)
+        	break;
+        totalInsertions++;
+        adr = hash_sum1(user[i].number, size);
+        if (ht[adr].count == 0) {
+            strcpy(ht[adr].key, user[i].number);
+            strcpy(ht[adr].key_name, user[i].name);
+            ht[adr].count = 1;
+        } else {
+            cnt = 1;
+            int step = 1;
+            do {
+                adr = (adr + flag*step*step) % size;
+                cnt++;
+                totalCollisions++;
+                step++;
+            } while (ht[adr].count != 0);
+            strcpy(ht[adr].key, user[i].number);
+            strcpy(ht[adr].key_name, user[i].name);
+            ht[adr].count = cnt;
+        }
+        flag=-flag;
+    }
+    for(j=0;j<size;j++)
+    {
+    	succ+=ht[j].count;
+	}
+    //printHashTable(ht, 100);
+    printf("(平方探测法）哈希函数1的冲突率: %.2f%%\n", (float)totalCollisions / totalInsertions);
+    printf("(平方探测法）哈希函数1平均搜索长度%.2f\n\n", (float)succ / size);
+}
+
+//数据插入哈希表 （哈希函数2）(线性探测法） 
+void insertData2(User user[], HashTable ht[], int size, int totalInsertions, int totalCollisions) {
+    int adr, cnt,succ=0,j;
+    for (int i = 0; i < size; i++) {
+    	if(i>100)
+        	break;
+        totalInsertions++;
+        adr = hash_sum2(user[i].number, size);
+        if (ht[adr].count == 0) {
+            strcpy(ht[adr].key, user[i].number);
+            strcpy(ht[adr].key_name, user[i].name);
+            ht[adr].count = 1;
+        } else {
+            cnt = 1;
+            do {
+                adr = (adr + 1) % size;
+                cnt++;
+                totalCollisions++;
+            } while (ht[adr].count != 0);
+            strcpy(ht[adr].key, user[i].number);
+            strcpy(ht[adr].key_name, user[i].name);
+            ht[adr].count = cnt;
+        }
+    }
+    for(j=0;j<size;j++)
+    {
+    	succ+=ht[j].count;
+	}
+    //printHashTable(ht, 100);
+    printf("(线性探测法） 哈希函数2的冲突率: %.2f%%\n", (float)totalCollisions / totalInsertions);
+    printf("(线性探测法） 哈希函数2平均搜索长度%.2f\n\n", (float)succ / size);
+}
+//数据插入哈希表 （哈希函数2） (平方探测法） 
+void insertData4(User user[], HashTable ht[], int size, int totalInsertions, int totalCollisions) {
+    int adr, cnt,flag=1,succ=0,j;
+    for (int i = 0; i < size; i++) {
+        totalInsertions++;
+        adr = hash_sum2(user[i].number, size);
+        if(i>100)
+        	break;
+        if (ht[adr].count == 0) {
+            strcpy(ht[adr].key, user[i].number);
+            strcpy(ht[adr].key_name, user[i].name);
+            ht[adr].count = 1;
+        } else {
+            cnt = 1;
+            int step = 1;
+            do {
+                adr = (adr + flag*step*step) % size;
+                cnt++;
+                totalCollisions++;
+                step++;
+            } while (ht[adr].count != 0);
+            strcpy(ht[adr].key, user[i].number);
+            strcpy(ht[adr].key_name, user[i].name);
+            ht[adr].count = cnt;
+        }
+        flag=-flag;
+    }
+    for(j=0;j<size;j++)
+    {
+    	succ+=ht[j].count;
+	}
+    //printHashTable(ht, 100);
+    printf("(平方探测法） 哈希函数2的冲突率: %.2f%%\n", (float)totalCollisions / totalInsertions);
+    printf("(平方探测法） 哈希函数2平均搜索长度%.2f\n\n", (float)succ / size);
+}
+
+int main() {
+    int totalInsertions = 0;
+    int totalCollisions = 0;
+
+    User user[100];
+
+    FILE *fp;
+    fp = fopen("测试数据.txt", "rb");
+    if (fp == NULL) {
+        printf("无法打开文件");
+        return 1;
+    }
+
+    for (int i = 0; i < 100; i++) {
+        fscanf(fp, "%s %s", user[i].number, user[i].name);
+    }
+
+    fclose(fp);
+    
+    HashTable ht1[151];
+    HashTable ht2[151];
+    HashTable ht3[151];
+    HashTable ht4[151];
+
+    iniHashTable(ht1, 151);
+    iniHashTable(ht2, 151);
+    iniHashTable(ht3, 151);
+    iniHashTable(ht4, 151);
+    
+    
+   	insertData1(user, ht1, 151, totalInsertions, totalCollisions);
+   	insertData3(user, ht2, 151, totalInsertions, totalCollisions);
+	insertData2(user, ht3, 151, totalInsertions, totalCollisions);
+	insertData4(user, ht4, 151, totalInsertions, totalCollisions);
+
+    return 0;
+}
