@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX 100
+
+int graph[MAX][MAX];
+int n;  // 顶点数
+
+// 深度优先搜索的辅助函数
+void dfs(int v, int visited[], int stack[], int* stackTop) {
+    visited[v] = 1;
+
+    for (int i = 0; i < n; ++i) {
+        if (graph[v][i] && !visited[i]) {
+            dfs(i, visited, stack, stackTop);
+        }
+    }
+
+    // 将顶点压入栈
+    stack[++(*stackTop)] = v;
+}
+
+// 转置图
+void transposeGraph() {
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            int temp = graph[i][j];
+            graph[i][j] = graph[j][i];
+            graph[j][i] = temp;
+        }
+    }
+}
+
+// 判断是否是强连通图
+bool isStronglyConnected() {
+    int visited[MAX] = {0};
+    int stack[MAX];
+    int stackTop = -1;
+
+    // 第一次DFS，将顶点按照完成时间压入栈
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i]) {
+            dfs(i, visited, stack, &stackTop);
+        }
+    }
+
+    // 转置图
+    transposeGraph();
+
+    // 初始化 visited 数组
+    for (int i = 0; i < n; ++i) {
+        visited[i] = 0;
+    }
+
+    // 第二次DFS，从栈中弹出顶点，得到强连通分量
+    while (stackTop >= 0) {
+        int v = stack[stackTop--];
+
+        if (!visited[v]) {
+            dfs(v, visited, NULL, NULL);
+            // 此时 visited 数组标记了一个强连通分量
+        }
+    }
+
+    // 检查是否所有顶点都被访问到
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int main() {
+	int n,m,i;
+    printf("请输入顶点数: ");
+    scanf("%d", &n);
+
+    printf("请输入边数: ");
+    scanf("%d", &m);
+
+    printf("输入有向边:\n");
+    for (i = 0; i < m; ++i) {
+        int s, d;
+        scanf("%d %d", &s, &d);
+        graph[s][d] = 1;
+    }
+
+    if (isStronglyConnected()) {
+        printf("yes");
+    } else {
+        printf("no");
+    }
+
+    return 0;
+}
