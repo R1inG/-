@@ -1,0 +1,140 @@
+#include<stdio.h>
+#define MAX 100
+typedef struct {
+	int x;
+	int y;
+	int dist;
+} Point;
+int dx[] = {0, 1, 0, -1};
+int dy[] = {1, 0, -1, 0};
+typedef struct {
+	Point arr[100];
+	int front, rear;
+} Queue;
+void iniQueue(Queue* q) {
+	q->front = q->rear = -1;
+}
+int isEmpty(Queue* q) {
+    return q->front == -1 && q->rear == -1;
+}
+int inQueue(Queue* q, Point p)
+{
+	if (q->front == -1)
+		q->front = q->rear = 0;
+	else
+		q->rear = (q->rear + 1) % MAX;
+	q->arr[q->rear] = p;
+}
+Point dequeue(Queue* q) 
+{
+	Point p = q->arr[q->front];
+	if (q->front == q->rear) {
+		q->front = q->rear = -1;
+	}
+	else {
+		q->front = (q->front + 1) % MAX;
+	}
+	return p;
+}
+
+int bfs(int maze[][100], int startx, int starty, int endx, int endy, int row, int col) {
+    Queue e;
+    iniQueue(&e);
+
+    int visit[100][100];
+    for (int i = 0; i < row; ++i) {
+        for (int j = 0; j < col; ++j) {
+            visit[i][j] = 0;
+        }
+    }
+
+    Point start = {startx, starty, 0};
+    inQueue(&e, start);
+    visit[startx][starty] = 1;
+
+    while (!isEmpty(&e)) {
+        Point current = dequeue(&e);
+
+        int x = current.x;
+        int y = current.y;
+        int dist = current.dist;
+
+        if (x == endx && y == endy) {
+            printf("最短路径步数: %d\n", dist);
+            return dist;
+        }
+
+        for (int dir = 0; dir < 4; ++dir) {
+            int nx = x + dx[dir];
+            int ny = y + dy[dir];
+
+            if (nx >= 0 && nx < row && ny >= 0 && ny < col && maze[nx][ny] == 0 && !visit[nx][ny]) {
+                Point newPoint = {nx, ny, dist + 1};
+                inQueue(&e, newPoint);
+                visit[nx][ny] = 1;
+            }
+        }
+    }
+
+    printf("无法找到路径\n");
+    return -1;
+}
+int find_shortest_path_recursive(int maze[][100], int x, int y, int endx, int endy, int path[][100], int row, int col, int dist) {
+    // 边界条件
+    if (x < 0 || x >= row || y < 0 || y >= col || maze[x][y] != 0 || path[x][y] == 1) {
+        return -1;  // 无效路径
+    }
+
+    // 当到达目标位置时，设置路径信息并返回步数
+    if (x == endx && y == endy) {
+        path[x][y] = 1;
+        return dist;
+    }
+
+    // 设置当前位置为已访问
+    path[x][y] = 1;
+
+    int result = -1;
+    
+    // 递归探索四个方向
+    for (int i = 0; i < 4; ++i) {
+        int nx = x + dx[i];
+        int ny = y + dy[i];
+        int step = find_shortest_path_recursive(maze, nx, ny, endx, endy, path, row, col, dist + 1);
+
+        // 如果找到有效路径，则更新结果
+        if (step >= 0 && (result == -1 || step < result)) {
+            result = step;
+        }
+    }
+
+    // 恢复当前位置为未访问，以便其他方向的探索
+    path[x][y] = 0;
+
+    return result;
+}
+
+int main(void)
+{
+	int row, col,i,j;
+	scanf("%d%d", &row, &col);
+	int maze[100][100],path[100][100];
+	for (i = 0; i < row; i++)
+	{
+		for (j = 0; j < col; j++)
+		{
+			scanf("%d", &maze[i][j]);
+		}
+	}
+	int startx, starty, endx, endy;
+	scanf("%d%d%d%d", &startx, &starty, &endx, &endy);
+ 	int steps = find_shortest_path_recursive(maze, startx, starty, endx, endy, path, row, col, 0);
+
+    if (steps >= 0) {
+        printf("最短路径步数: %d\n", steps);
+    } else {
+        printf("无法找到路径\n");
+    }
+    bfs(maze, startx, starty, endx, endy, row, col);
+	return 0;
+}
